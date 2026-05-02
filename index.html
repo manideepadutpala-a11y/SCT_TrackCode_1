@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>House Prices Regression Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #09111d;
+      --surface: #101927;
+      --surface-strong: #162234;
+      --panel: #0f1724;
+      --chart-panel: #121d2b;
+      --text: #e7efff;
+      --muted: #8ea2c7;
+      --accent: #5e8fff;
+      --border: rgba(153, 175, 214, 0.14);
+      --shadow: 0 28px 80px rgba(0, 0, 0, 0.34);
+      --radius: 26px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Manrope', ui-sans-serif, system-ui, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(94, 143, 255, 0.16), transparent 24%),
+        radial-gradient(circle at bottom right, rgba(46, 88, 196, 0.16), transparent 20%),
+        var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    .page-container {
+      width: min(1360px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 40px 0 60px;
+    }
+
+    header {
+      padding: 32px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(17, 26, 39, 0.98), rgba(14, 22, 34, 0.96));
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+    }
+
+    .eyebrow {
+      color: var(--accent);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      font-size: 0.82rem;
+      margin-bottom: 14px;
+      display: inline-flex;
+    }
+
+    h1 {
+      margin: 0 0 18px;
+      font-size: clamp(2.6rem, 3.5vw, 4.1rem);
+      max-width: 13ch;
+      line-height: 1.02;
+    }
+
+    p.lead {
+      margin: 0;
+      max-width: 760px;
+      color: var(--muted);
+      font-size: 1rem;
+    }
+
+    .button-row {
+      margin-top: 28px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+
+    button {
+      border: none;
+      border-radius: 999px;
+      padding: 14px 24px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform 0.18s ease, filter 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .button-primary {
+      background: linear-gradient(135deg, #5e8fff, #79a8ff);
+      color: #09131f;
+      box-shadow: 0 18px 40px rgba(94, 143, 255, 0.25);
+    }
+
+    .button-secondary {
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.05);
+    }
+
+    .grid {
+      display: grid;
+      gap: 24px;
+      margin-top: 26px;
+    }
+
+    .grid-split {
+      grid-template-columns: minmax(0, 1.65fr) minmax(320px, 0.72fr);
+      align-items: start;
+    }
+
+    .card {
+      padding: 28px;
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(17, 26, 39, 0.98), rgba(13, 20, 31, 0.96));
+      border: 1px solid var(--border);
+      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.20);
+    }
+
+    .card h2 {
+      margin: 0 0 16px;
+      font-size: 1.35rem;
+    }
+
+    .card p,
+    .card li {
+      color: var(--muted);
+      font-size: 0.98rem;
+    }
+
+    .status-bar {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 20px;
+      margin-top: 20px;
+      border-radius: 18px;
+      background: rgba(94, 143, 255, 0.12);
+      border: 1px solid rgba(94, 143, 255, 0.24);
+      color: #dbe7ff;
+      font-weight: 700;
+    }
+
+    .chart-card {
+      display: grid;
+      gap: 18px;
+    }
+
+    .chart-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 4px;
+    }
+
+    .chart-chip {
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .chart-chip.active {
+      background: rgba(94, 143, 255, 0.16);
+      border-color: rgba(94, 143, 255, 0.32);
+      color: var(--text);
+    }
+
+    .chart-shell {
+      padding: 22px;
+      border-radius: 30px;
+      background: linear-gradient(180deg, rgba(19, 30, 44, 0.98), rgba(16, 24, 36, 0.98));
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+    }
+
+    canvas {
+      width: 100% !important;
+      height: 420px !important;
+      max-height: 420px;
+      border-radius: 22px;
+      background: linear-gradient(180deg, rgba(15, 23, 34, 0.96), rgba(15, 23, 34, 0.9));
+      padding: 12px;
+    }
+
+    .table-card {
+      max-height: 640px;
+      overflow: hidden;
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+      overflow-y: auto;
+      max-height: 460px;
+      margin-top: 12px;
+      border-radius: 20px;
+      background: rgba(14, 22, 34, 0.68);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.95rem;
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 13px 12px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+    }
+
+    th {
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-size: 0.78rem;
+      color: #cdd9f0;
+      position: sticky;
+      top: 0;
+      background: rgba(16, 25, 39, 0.98);
+      z-index: 1;
+    }
+
+    .property-cell {
+      min-width: 210px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .property-type {
+      white-space: nowrap;
+    }
+
+    .price-cell {
+      white-space: nowrap;
+      font-weight: 700;
+    }
+
+    tbody tr:hover {
+      background: rgba(94, 143, 255, 0.08);
+    }
+
+    .note {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 16px;
+      margin-top: 18px;
+    }
+
+    .summary-item {
+      padding: 18px;
+      border-radius: 20px;
+      background: rgba(14, 22, 34, 0.78);
+      border: 1px solid rgba(153, 175, 214, 0.12);
+    }
+
+    .summary-item h3 {
+      margin: 0 0 8px;
+      font-size: 1rem;
+      color: var(--text);
+    }
+
+    .summary-tag {
+      display: inline-flex;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(94, 143, 255, 0.12);
+      color: #dce8ff;
+      font-size: 0.82rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .suggestion-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 18px;
+      margin-top: 22px;
+    }
+
+    .suggestion-card {
+      overflow: hidden;
+      border-radius: 24px;
+      background: rgba(14, 22, 34, 0.82);
+      border: 1px solid rgba(153, 175, 214, 0.12);
+      box-shadow: 0 16px 38px rgba(0, 0, 0, 0.2);
+    }
+
+    .suggestion-image {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      display: block;
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .suggestion-content {
+      padding: 18px;
+    }
+
+    .suggestion-meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 10px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .suggestion-title {
+      margin: 0 0 8px;
+      font-size: 1.02rem;
+      color: var(--text);
+    }
+
+    .suggestion-price {
+      color: var(--text);
+      font-weight: 800;
+      margin: 10px 0 0;
+    }
+
+    .footer {
+      margin-top: 40px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    @media (max-width: 960px) {
+      .grid-split {
+        grid-template-columns: 1fr;
+      }
+
+      header,
+      .card {
+        padding: 22px;
+      }
+
+      canvas {
+        height: 320px !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-container">
+    <header>
+      <div>
+        <div class="eyebrow">House Prices Dashboard</div>
+        <h1>Interactive model preview with charting</h1>
+        <p class="lead">Review the latest house price highlights in a polished dark dashboard with a smooth, wavy trend graph.</p>
+      </div>
+      <div class="button-row">
+        <button id="run-model" class="button-primary">Update Dashboard</button>
+        <button id="refresh-predictions" class="button-secondary">Refresh Predictions</button>
+      </div>
+        <div class="status-bar" id="status-bar">Dashboard is ready.</div>
+    </header>
+
+    <div class="grid grid-split">
+      <div class="card chart-card">
+        <div>
+          <h2 id="chart-title">Prediction chart</h2>
+          <p class="note" id="chart-subtitle">Switch between home highlights, year-wise prices, future projections, and type comparisons.</p>
+        </div>
+        <div class="chart-toolbar" id="chart-toolbar">
+          <button class="chart-chip active" data-mode="propertyWave">Property View</button>
+          <button class="chart-chip" data-mode="yearlyTrend">Year-wise</button>
+          <button class="chart-chip" data-mode="futureProjection">Future</button>
+          <button class="chart-chip" data-mode="typeComparison">Types</button>
+        </div>
+        <div class="chart-shell">
+          <canvas id="predictionChart"></canvas>
+        </div>
+        <p class="note" id="chart-footnote">Use Refresh Predictions to cycle through different graph views automatically.</p>
+      </div>
+
+      <div class="card table-card">
+        <h2>Latest prediction table</h2>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Property</th>
+                <th>Type</th>
+                <th>Estimate</th>
+              </tr>
+            </thead>
+            <tbody id="prediction-table">
+              <tr><td colspan="3" style="color: var(--muted);">Loading predictions...</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="note" id="prediction-note">Showing a named property preview generated from the latest available results.</p>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h2>Pricing and type guide</h2>
+        <p class="note">This section helps customers quickly understand which property types are available and how their pricing is positioned.</p>
+        <div class="summary-grid" id="market-summary">
+          <div class="summary-item">
+            <h3>Loading guide...</h3>
+            <p class="note">Customer-friendly pricing suggestions will appear here.</p>
+          </div>
+        </div>
+        <div class="suggestion-grid" id="suggestion-grid">
+          <div class="suggestion-card">
+            <div class="suggestion-content">
+              <h3 class="suggestion-title">Loading suggestions...</h3>
+              <p class="note">Visual property suggestion cards will appear here.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Dashboard flow</h2>
+        <p>Use <strong>Update Dashboard</strong> to refresh the latest values and redraw the chart. <strong>Refresh Predictions</strong> reloads the latest view if your results have changed.</p>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">Open the app at <strong>http://127.0.0.1:5000</strong> after starting the server.</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    const statusBar = document.getElementById('status-bar');
+    const runButton = document.getElementById('run-model');
+    const refreshButton = document.getElementById('refresh-predictions');
+    const tableBody = document.getElementById('prediction-table');
+    const predictionNote = document.getElementById('prediction-note');
+    const chartCanvas = document.getElementById('predictionChart');
+    const chartTitle = document.getElementById('chart-title');
+    const chartSubtitle = document.getElementById('chart-subtitle');
+    const chartToolbar = document.getElementById('chart-toolbar');
+    const chartFootnote = document.getElementById('chart-footnote');
+    const marketSummary = document.getElementById('market-summary');
+    const suggestionGrid = document.getElementById('suggestion-grid');
+    const priceFormatter = new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 });
+    const chartModes = ['propertyWave', 'yearlyTrend', 'futureProjection', 'typeComparison'];
+    let currentChartMode = 'propertyWave';
+    let dashboardCharts = {};
+    let predictionChart;
+
+    function setStatus(text, success = true) {
+      statusBar.textContent = text;
+      statusBar.style.backgroundColor = success ? 'rgba(56, 252, 190, 0.14)' : 'rgba(255, 107, 107, 0.15)';
+      statusBar.style.borderColor = success ? 'rgba(56, 252, 190, 0.28)' : 'rgba(255, 107, 107, 0.28)';
+      statusBar.style.color = success ? '#e6f7ee' : '#ffe7e7';
+    }
+
+    async function fetchPredictions() {
+      const response = await fetch('/api/predictions');
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Unable to load predictions');
+      }
+      return data;
+    }
+
+    function updateTable(predictions) {
+      tableBody.innerHTML = '';
+      if (!predictions.length) {
+        tableBody.innerHTML = '<tr><td colspan="3">No predictions available.</td></tr>';
+        return;
+      }
+
+      predictions.slice(0, 8).forEach((row) => {
+        const tr = document.createElement('tr');
+        const nameCell = document.createElement('td');
+        const typeCell = document.createElement('td');
+        const priceCell = document.createElement('td');
+        nameCell.className = 'property-cell';
+        typeCell.className = 'property-type';
+        priceCell.className = 'price-cell';
+        nameCell.textContent = row.DisplayName;
+        typeCell.textContent = row.PropertyType;
+        priceCell.textContent = priceFormatter.format(row.SalePrice);
+        tr.appendChild(nameCell);
+        tr.appendChild(typeCell);
+        tr.appendChild(priceCell);
+        tableBody.appendChild(tr);
+      });
+    }
+
+    function updateSummary(summaryItems) {
+      marketSummary.innerHTML = '';
+
+      if (!summaryItems || !summaryItems.length) {
+        marketSummary.innerHTML = `
+          <div class="summary-item">
+            <h3>No guide available</h3>
+            <p class="note">Pricing suggestions could not be generated yet.</p>
+          </div>
+        `;
+        return;
+      }
+
+      summaryItems.forEach((item) => {
+        const card = document.createElement('div');
+        card.className = 'summary-item';
+        card.innerHTML = `
+          <div class="summary-tag">${item.priceBand}</div>
+          <h3>${item.type}</h3>
+          <p class="note">${item.message}</p>
+        `;
+        marketSummary.appendChild(card);
+      });
+    }
+
+    function updateSuggestions(items) {
+      suggestionGrid.innerHTML = '';
+
+      if (!items || !items.length) {
+        suggestionGrid.innerHTML = `
+          <div class="suggestion-card">
+            <div class="suggestion-content">
+              <h3 class="suggestion-title">No suggestions available</h3>
+              <p class="note">Visual property suggestion cards could not be generated yet.</p>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      items.forEach((item) => {
+        const card = document.createElement('div');
+        card.className = 'suggestion-card';
+        card.innerHTML = `
+          <img class="suggestion-image" src="${item.image}" alt="${item.name}">
+          <div class="suggestion-content">
+            <div class="suggestion-meta">
+              <span>${item.type}</span>
+              <span>${item.priceBand}</span>
+            </div>
+            <h3 class="suggestion-title">${item.name}</h3>
+            <p class="note">${item.message}</p>
+            <p class="suggestion-price">${priceFormatter.format(item.price)}</p>
+          </div>
+        `;
+        suggestionGrid.appendChild(card);
+      });
+    }
+
+    function createAreaGradient(chart) {
+      const { ctx, chartArea } = chart;
+      if (!chartArea) {
+        return 'rgba(94, 143, 255, 0.18)';
+      }
+
+      const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+      gradient.addColorStop(0, 'rgba(94, 143, 255, 0.40)');
+      gradient.addColorStop(1, 'rgba(94, 143, 255, 0.05)');
+      return gradient;
+    }
+
+    function createBarGradient(chart) {
+      const { ctx, chartArea } = chart;
+      if (!chartArea) {
+        return 'rgba(94, 143, 255, 0.75)';
+      }
+
+      const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
+      gradient.addColorStop(0, 'rgba(94, 143, 255, 0.45)');
+      gradient.addColorStop(1, 'rgba(121, 168, 255, 0.95)');
+      return gradient;
+    }
+
+    function setActiveChartMode(mode) {
+      currentChartMode = mode;
+      chartToolbar.querySelectorAll('.chart-chip').forEach((button) => {
+        button.classList.toggle('active', button.dataset.mode === mode);
+      });
+    }
+
+    function rotateChartMode() {
+      const currentIndex = chartModes.indexOf(currentChartMode);
+      const nextIndex = (currentIndex + 1) % chartModes.length;
+      setActiveChartMode(chartModes[nextIndex]);
+    }
+
+    function drawChart(mode = currentChartMode) {
+      const chartConfig = dashboardCharts[mode];
+      if (!chartConfig || !chartConfig.points || !chartConfig.points.length) {
+        return;
+      }
+
+      setActiveChartMode(mode);
+      chartTitle.textContent = chartConfig.title;
+      chartSubtitle.textContent = chartConfig.subtitle;
+      chartFootnote.textContent = `Current view: ${chartConfig.title}. Use Refresh Predictions to rotate to another graph.`;
+
+      const labels = chartConfig.points.map((point) => point.label);
+      const values = chartConfig.points.map((point) => point.value);
+      const chartData = {
+        labels,
+        datasets: [{
+          label: chartConfig.datasetLabel,
+          data: values,
+          borderColor: '#5e8fff',
+          backgroundColor: (context) => chartConfig.style === 'bar'
+            ? createBarGradient(context.chart)
+            : createAreaGradient(context.chart),
+          fill: chartConfig.style !== 'bar',
+          tension: chartConfig.style === 'bar' ? 0 : 0.42,
+          borderWidth: chartConfig.style === 'bar' ? 1.5 : 4,
+          pointRadius: chartConfig.style === 'bar' ? 0 : 4.8,
+          pointHoverRadius: chartConfig.style === 'bar' ? 0 : 6,
+          pointBorderWidth: chartConfig.style === 'bar' ? 0 : 2.5,
+          pointBorderColor: '#5e8fff',
+          pointBackgroundColor: '#ffffff',
+          pointHoverBackgroundColor: '#ffffff',
+          borderRadius: chartConfig.style === 'bar' ? 12 : 0
+        }]
+      };
+
+      const config = {
+        type: chartConfig.style === 'bar' ? 'bar' : 'line',
+        data: chartData,
+        options: {
+          maintainAspectRatio: false,
+          responsive: true,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              displayColors: false,
+              backgroundColor: 'rgba(11, 17, 27, 0.96)',
+              borderColor: 'rgba(94, 143, 255, 0.18)',
+              borderWidth: 1,
+              padding: 12,
+              callbacks: {
+                label: (ctx) => `SalePrice: ${priceFormatter.format(ctx.parsed.y)}`
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: {
+                color: 'rgba(255,255,255,0.05)',
+                drawBorder: false
+              },
+              ticks: {
+                color: '#c8d7ff',
+                autoSkip: true,
+                maxTicksLimit: 6,
+                maxRotation: 0,
+                minRotation: 0,
+                padding: 10
+              }
+            },
+            y: {
+              grid: {
+                color: 'rgba(255,255,255,0.06)',
+                drawBorder: false
+              },
+              ticks: {
+                color: '#c8d7ff',
+                callback: (value) => priceFormatter.format(value)
+              }
+            }
+          }
+        }
+      };
+
+      if (predictionChart) {
+        predictionChart.config.type = config.type;
+        predictionChart.data = chartData;
+        predictionChart.options = config.options;
+        predictionChart.update();
+      } else {
+        predictionChart = new Chart(chartCanvas, config);
+      }
+    }
+
+    async function refreshPredictions(rotateMode = false) {
+      setStatus('Refreshing dashboard...');
+      try {
+        const data = await fetchPredictions();
+        dashboardCharts = data.charts || {};
+        if (rotateMode) {
+          rotateChartMode();
+        } else if (!dashboardCharts[currentChartMode]) {
+          setActiveChartMode('propertyWave');
+        }
+        updateTable(data.predictions);
+        drawChart(currentChartMode);
+        updateSummary(data.summary);
+        updateSuggestions(data.suggestions);
+        predictionNote.textContent = `Showing ${Math.min(data.predictions.length, 12)} homes in the graph and the latest ${Math.min(data.predictions.length, 8)} in the table preview.`;
+        setStatus('Dashboard refreshed successfully.');
+      } catch (error) {
+        updateTable([]);
+        updateSummary([]);
+        updateSuggestions([]);
+        predictionNote.textContent = 'Unable to load the latest results right now.';
+        setStatus(error.message, false);
+      }
+    }
+
+    async function runModel() {
+      setStatus('Updating dashboard...');
+      try {
+        const response = await fetch('/api/run', { method: 'POST' });
+        const data = await response.json();
+        if (!response.ok || !data.success) {
+          throw new Error(data.error || 'Dashboard update failed');
+        }
+        dashboardCharts = data.charts || {};
+        setActiveChartMode('propertyWave');
+        updateTable(data.predictions);
+        drawChart(currentChartMode);
+        updateSummary(data.summary);
+        updateSuggestions(data.suggestions);
+        predictionNote.textContent = `Showing ${Math.min(data.count, 12)} homes in the graph and the latest ${Math.min(data.count, 8)} in the table preview.`;
+        setStatus('Dashboard updated successfully.');
+      } catch (error) {
+        setStatus(error.message, false);
+      }
+    }
+
+    chartToolbar.addEventListener('click', (event) => {
+      const button = event.target.closest('.chart-chip');
+      if (!button) {
+        return;
+      }
+      const { mode } = button.dataset;
+      if (!dashboardCharts[mode]) {
+        return;
+      }
+      drawChart(mode);
+    });
+
+    runButton.addEventListener('click', runModel);
+    refreshButton.addEventListener('click', () => refreshPredictions(true));
+    refreshPredictions(false);
+  </script>
+</body>
+</html>
