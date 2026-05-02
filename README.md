@@ -1,5 +1,4 @@
 # SCT_TrackCode_1
-# SCT_TrackCode_1
 
 ## House Prices Linear Regression Task
 
